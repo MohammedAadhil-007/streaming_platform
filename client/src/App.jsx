@@ -5,37 +5,29 @@ import { onAuthStateChanged } from "firebase/auth";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
-import Navbar from "./components/Navbar"; // Optional if you have a Navbar
+
+const adminEmails = ["admin@example.com", "youradminemail@gmail.com"];
 
 function App() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setIsAdmin(currentUser ? adminEmails.includes(currentUser.email) : false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // List of manually added admins
-  const admins = ["admin@example.com"];
-
   return (
     <Router>
       <div className="bg-gray-900 text-white min-h-screen">
-        {user && <Navbar />} {/* Show navbar only when logged in */}
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route
-            path="/home"
-            element={user ? <Home /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/admin-dashboard"
-            element={user && admins.includes(user.email) ? <AdminDashboard /> : <Navigate to="/" />}
-          />
+          <Route path="/home" element={user ? <Home /> : <Navigate to="/" />} />
+          <Route path="/admin-dashboard" element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
         </Routes>
       </div>
     </Router>

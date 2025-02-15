@@ -1,107 +1,72 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import Navbar from "../components/Navbar"; // ✅ Import Navbar
 
 const AdminDashboard = () => {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [file, setFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [preview, setPreview] = useState(null);
-    const [message, setMessage] = useState("");
+  const [videos, setVideos] = useState([]);
 
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-
-        if (selectedFile) {
-            const fileURL = URL.createObjectURL(selectedFile);
-            setPreview(fileURL);
-        }
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const videoCollection = collection(db, "videos");
+        const videoDocs = await getDocs(videoCollection);
+        setVideos(
+          videoDocs.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+      }
     };
 
-    const handleUpload = async (e) => {
-        e.preventDefault();
-        if (!file) {
-            setMessage("Please select a video file.");
-            return;
-        }
+    fetchVideos();
+  }, []);
 
-        setUploading(true);
-        setMessage("");
+  const handleDelete = async (videoId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this video?");
+    if (!confirmDelete) return;
 
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("description", description);
-        formData.append("video", file);
+    try {
+      await deleteDoc(doc(db, "videos", videoId));
+      setVideos(videos.filter((video) => video.id !== videoId));
+    } catch (error) {
+      console.error("Error deleting video:", error);
+    }
+  };
 
-        try {
-            const res = await fetch("http://localhost:5000/api/videos/upload", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            });
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      <Navbar /> {/* ✅ Add Navbar here */}
+      <div className="p-6">
+        <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
 
-            const data = await res.json();
-            setMessage(data.message);
-        } catch (error) {
-            setMessage("Upload failed. Try again.");
-        }
-
-        setUploading(false);
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col items-center">
-            <h1 className="text-3xl font-bold mb-6">📤 Upload New Video</h1>
-
-            <form onSubmit={handleUpload} className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg">
-                <input
-                    type="text"
-                    placeholder="Title"
-                    className="w-full p-3 mb-4 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                />
-
-                <textarea
-                    placeholder="Description"
-                    className="w-full p-3 mb-4 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    required
-                />
-
-                <input
-                    type="file"
-                    accept="video/mp4"
-                    className="w-full p-2 bg-gray-700 text-white rounded"
-                    onChange={handleFileChange}
-                    required
-                />
-
-                {preview && (
-                    <video className="mt-4 w-full rounded-lg shadow-lg" controls>
-                        <source src={preview} type="video/mp4" />
-                        Your browser does not support the video tag.
-                    </video>
-                )}
-
+        {videos.length === 0 ? (
+          <p className="text-center text-gray-400">No videos available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {videos.map((video) => (
+              <div key={video.id} className="bg-gray-800 p-4 rounded-lg shadow-lg">
+                <h2 className="text-xl font-semibold">{video.title}</h2>
+                <p className="text-sm text-gray-400">{video.description}</p>
+                <video className="w-full mt-2 rounded-lg" controls>
+                  <source src={video.url} type="video/mp4" />
+                </video>
                 <button
-                    type="submit"
-                    className={`w-full mt-4 py-2 rounded bg-blue-500 hover:bg-blue-600 transition ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
-                    disabled={uploading}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mt-3"
+                  onClick={() => handleDelete(video.id)}
                 >
-                    {uploading ? "Uploading..." : "Upload Video"}
+                  Delete Video
                 </button>
-
-                {message && (
-                    <p className="mt-4 text-center text-sm text-green-400">{message}</p>
-                )}
-            </form>
-        </div>
-    );
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default AdminDashboard;
