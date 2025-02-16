@@ -36,7 +36,7 @@ This is a project for an video streaming platform where only the admin can uploa
 - **JWT Authentication** for admin access.  
 
 ### Storage & Video Processing  
-- **AWS S3 / Firebase Storage** for video hosting.  
+- **AWS S3 / Firebase Storage/ Cloudinary** for video hosting.  
 - **FFmpeg & HLS (`.m3u8`)** for adaptive streaming.  
 
 ### Deployment  
