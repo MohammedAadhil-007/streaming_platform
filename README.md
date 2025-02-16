@@ -4,7 +4,7 @@
 This is a project for an video streaming platform where only the admin can upload and manage content. Users can browse and watch videos with smooth playback and adaptive streaming.  
 
 ## Objective  
-- Develop a **basic Netflix-like platform** for streaming videos.  
+- Develop a **basic Streamig platform** for streaming videos.  
 - Ensure **high-quality video playback** with adaptive streaming.  
 - Use **cloud storage** for video hosting.  
 - Implement **a simple admin dashboard** for content management.  
