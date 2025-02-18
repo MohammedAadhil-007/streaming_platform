@@ -2,11 +2,10 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 import { useState, useEffect } from "react";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { adminEmails } from "./config"; // ✅ Import adminEmails
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
-
-const adminEmails = ["admin@example.com", "youradminemail@gmail.com"];
 
 function App() {
   const [user, setUser] = useState(null);

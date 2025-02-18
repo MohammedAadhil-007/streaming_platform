@@ -1,17 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-
-const adminEmails = ["admin@example.com", "youradminemail@gmail.com"]; // ✅ Change this to your admins
+import { adminEmails } from "../config"; // ✅ Import adminEmails
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false); // ✅ Toggle between User/Admin
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      if (adminEmails.includes(storedUser.email)) {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/home");
+      }
+    }
+  }, [navigate]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -26,8 +36,8 @@ const Login = () => {
       }
 
       const user = userCredential.user;
+      localStorage.setItem("user", JSON.stringify({ email: user.email }));
 
-      // ✅ Redirect Admins & Users properly
       if (isAdmin && adminEmails.includes(user.email)) {
         navigate("/admin-dashboard");
       } else if (!isAdmin) {
@@ -45,17 +55,16 @@ const Login = () => {
       <div className="p-8 bg-gray-800 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold text-center">{isLogin ? "Login" : "Sign Up"}</h2>
 
-        {/* ✅ Toggle between User and Admin */}
         <div className="flex justify-center gap-4 mt-4">
           <button
             className={`px-4 py-2 rounded-lg ${!isAdmin ? "bg-blue-500 text-white" : "bg-gray-600"}`}
-            onClick={() => { setIsAdmin(false); setIsLogin(true); }} // ✅ Users can sign up
+            onClick={() => { setIsAdmin(false); setIsLogin(true); }}
           >
             User
           </button>
           <button
             className={`px-4 py-2 rounded-lg ${isAdmin ? "bg-green-500 text-white" : "bg-gray-600"}`}
-            onClick={() => { setIsAdmin(true); setIsLogin(true); }} // ✅ Admins can only log in
+            onClick={() => { setIsAdmin(true); setIsLogin(true); }}
           >
             Admin
           </button>
@@ -89,7 +98,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* ✅ Hide Sign-Up Option for Admins */}
         {!isAdmin && (
           <p
             className="mt-3 text-center cursor-pointer text-blue-400 hover:underline"
