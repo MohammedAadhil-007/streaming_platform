@@ -11,8 +11,10 @@ router.post("/signup", async (req, res) => {
         const { username, email, password, role } = req.body;
         if (role === "admin") return res.status(403).json({ message: "Admins must be added manually" });
 
-        const user = new User({ username, email, password });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ username, email, password: hashedPassword });
         await user.save();
+
         res.status(201).json({ message: "User created successfully" });
     } catch (error) {
         res.status(500).json({ error: error.message });
