@@ -25,7 +25,7 @@ const VideoCard = ({ video }) => {
 
   return (
     <div
-      className="flex flex-col items-start w-64 md:w-72 lg:w-80 cursor-pointer"
+      className="relative flex flex-col items-start w-64 md:w-72 lg:w-80 cursor-pointer"
       onMouseEnter={() => setShowDetails(true)}
       onMouseLeave={() => setShowDetails(false)}
     >
@@ -61,32 +61,32 @@ const VideoCard = ({ video }) => {
         </div>
       </div>
 
-      {/* 🔹 Video Title Below (Like YouTube) */}
-      <h2 className="mt-2 text-white text-base md:text-lg font-bold line-clamp-2">
+      {/* 🔹 Video Title Below */}
+      <h2 className="mt-2 text-white text-sm md:text-base font-bold line-clamp-2">
         {video.title}
       </h2>
 
       {/* 🔹 Hover Details */}
       {showDetails && !isPlaying && (
         <div
-          className="absolute left-0 top-full mt-3 w-[28rem] bg-gray-900 text-white 
+          className="absolute left-1/2 transform -translate-x-1/2 top-full mt-3 w-[22rem] bg-gray-900 text-white 
           p-4 rounded-lg shadow-xl border border-gray-700 z-50 transition-all 
-          duration-300 opacity-100 transform scale-100"
+          duration-300 opacity-100 scale-100"
         >
           {/* ⬆️ Arrow Indicator */}
-          <div className="absolute -top-2 left-8 w-4 h-4 bg-gray-900 rotate-45 border-l border-t border-gray-700"></div>
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rotate-45 border-l border-t border-gray-700"></div>
 
-          <p className="text-sm text-gray-400 mt-2">Category: {video.category}</p>
-          <p className="text-sm text-gray-400">Genre: {video.genre}</p>
-          <p className="text-sm text-gray-500 mt-2">{video.description}</p>
+          <p className="text-xs text-gray-400">Category: {video.category}</p>
+          <p className="text-xs text-gray-400">Genre: {video.genre}</p>
+          <p className="text-xs text-gray-500 mt-2 line-clamp-3">{video.description}</p>
 
           {/* 🔹 Watch Now Button */}
           <button
-            className="mt-3 w-full flex items-center justify-center gap-2 bg-red-600 px-6 py-3 
-            rounded-lg font-bold hover:bg-red-700 text-lg"
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-red-600 px-4 py-2 
+            rounded-lg font-bold hover:bg-red-700 text-sm"
             onClick={() => setIsPlaying(true)} // ⬅️ Play video on click
           >
-            <FaPlay className="text-black text-xl" /> Watch Now
+            <FaPlay className="text-black text-lg" /> Watch Now
           </button>
         </div>
       )}

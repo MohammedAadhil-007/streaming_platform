@@ -5,11 +5,13 @@ import { collection, addDoc } from "firebase/firestore";
 const UploadVideo = ({ onUploadSuccess }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState(null); // Default is null
-  const [genre, setGenre] = useState(null); // Default is null
+  const [category, setCategory] = useState("");
+  const [genre, setGenre] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [draggingThumbnail, setDraggingThumbnail] = useState(false);
+  const [draggingVideo, setDraggingVideo] = useState(false);
 
   const categories = ["Clips", "Movies", "Series", "Documentary"];
   const genres = ["Action", "Comedy", "Romance", "Adventure", "Horror", "Sci-Fi"];
@@ -23,13 +25,13 @@ const UploadVideo = ({ onUploadSuccess }) => {
     setLoading(true);
 
     try {
-      // Upload thumbnail to Cloudinary
+      // Upload Thumbnail to Cloudinary
       const thumbnailFormData = new FormData();
       thumbnailFormData.append("file", thumbnail);
       thumbnailFormData.append("upload_preset", "video_thumbnail_preset");
 
       const thumbnailResponse = await fetch(
-        "https://api.cloudinary.com/v1_1/dptyps19e/image/upload", 
+        "https://api.cloudinary.com/v1_1/dptyps19e/image/upload",
         { method: "POST", body: thumbnailFormData }
       );
 
@@ -37,13 +39,13 @@ const UploadVideo = ({ onUploadSuccess }) => {
       if (!thumbnailData.secure_url) throw new Error("Thumbnail upload failed.");
       const thumbnailUrl = thumbnailData.secure_url;
 
-      // Upload video to Cloudinary
+      // Upload Video to Cloudinary
       const videoFormData = new FormData();
       videoFormData.append("file", videoFile);
       videoFormData.append("upload_preset", "video_upload_preset");
 
       const videoResponse = await fetch(
-        "https://api.cloudinary.com/v1_1/dptyps19e/video/upload", 
+        "https://api.cloudinary.com/v1_1/dptyps19e/video/upload",
         { method: "POST", body: videoFormData }
       );
 
@@ -51,7 +53,7 @@ const UploadVideo = ({ onUploadSuccess }) => {
       if (!videoData.secure_url) throw new Error("Video upload failed.");
       const videoUrl = videoData.secure_url;
 
-      // Save video details to Firestore
+      // Save Video Details to Firestore
       await addDoc(collection(db, "videos"), {
         title,
         description,
@@ -61,13 +63,17 @@ const UploadVideo = ({ onUploadSuccess }) => {
         videoUrl,
       });
 
-      alert("Video uploaded successfully!");
+      alert("🎉 Video uploaded successfully!");
+
+      // Reset State
       setTitle("");
       setDescription("");
-      setCategory(null);
-      setGenre(null);
+      setCategory("");
+      setGenre("");
       setThumbnail(null);
       setVideoFile(null);
+
+      // Refresh Admin Dashboard
       onUploadSuccess();
     } catch (error) {
       console.error("Error uploading:", error);
@@ -77,29 +83,55 @@ const UploadVideo = ({ onUploadSuccess }) => {
     }
   };
 
+  const handleDragOver = (e, type) => {
+    e.preventDefault();
+    type === "thumbnail" ? setDraggingThumbnail(true) : setDraggingVideo(true);
+  };
+
+  const handleDragLeave = (type) => {
+    type === "thumbnail" ? setDraggingThumbnail(false) : setDraggingVideo(false);
+  };
+
+  const handleDrop = (e, type) => {
+    e.preventDefault();
+    type === "thumbnail" ? setDraggingThumbnail(false) : setDraggingVideo(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      if (type === "thumbnail" && file.type.startsWith("image/")) {
+        setThumbnail(file);
+      } else if (type === "video" && file.type.startsWith("video/")) {
+        setVideoFile(file);
+      } else {
+        alert("Invalid file type!");
+      }
+    }
+  };
+
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-      <h2 className="text-xl font-bold mb-4">Upload Video</h2>
+    <div className="bg-gray-900 p-8 rounded-lg shadow-xl max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold text-white mb-6 text-center">Upload Video</h2>
+
       <input
         type="text"
         placeholder="Title"
-        className="w-full p-2 mb-3"
+        className="w-full p-3 mb-4 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
       />
+
       <textarea
         placeholder="Description"
-        className="w-full p-2 mb-3"
+        className="w-full p-3 mb-4 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         required
       />
-      
-      {/* Category Dropdown */}
+
       <select
-        className="w-full p-2 mb-3"
-        value={category || ""}
+        className="w-full p-3 mb-4 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={category}
         onChange={(e) => setCategory(e.target.value)}
         required
       >
@@ -109,10 +141,9 @@ const UploadVideo = ({ onUploadSuccess }) => {
         ))}
       </select>
 
-      {/* Genre Dropdown */}
       <select
-        className="w-full p-2 mb-3"
-        value={genre || ""}
+        className="w-full p-3 mb-4 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={genre}
         onChange={(e) => setGenre(e.target.value)}
         required
       >
@@ -122,30 +153,40 @@ const UploadVideo = ({ onUploadSuccess }) => {
         ))}
       </select>
 
-      {/* Thumbnail Upload */}
-      <input
-        type="file"
-        accept="image/*"
-        className="w-full p-2 mb-3 bg-gray-700 rounded"
-        onChange={(e) => setThumbnail(e.target.files[0])}
-        required
-      />
+      {/* Thumbnail Upload Box */}
+      <div
+        className={`w-full p-6 mb-4 border-2 border-dashed rounded-lg text-white text-center cursor-pointer transition-all ${
+          draggingThumbnail ? "border-blue-500 bg-gray-700" : "border-gray-600 bg-gray-800"
+        }`}
+        onClick={() => document.getElementById("thumbnailInput").click()}
+        onDragOver={(e) => handleDragOver(e, "thumbnail")}
+        onDragLeave={() => handleDragLeave("thumbnail")}
+        onDrop={(e) => handleDrop(e, "thumbnail")}
+      >
+        <input id="thumbnailInput" type="file" className="hidden" accept="image/*" onChange={(e) => setThumbnail(e.target.files[0])} />
+        {thumbnail ? `✅ ${thumbnail.name}` : "📸 Click or Drag Thumbnail Here"}
+      </div>
 
-      {/* Video Upload */}
-      <input
-        type="file"
-        accept="video/*"
-        className="w-full p-2 mb-3 bg-gray-700 rounded"
-        onChange={(e) => setVideoFile(e.target.files[0])}
-        required
-      />
+      {/* Video Upload Box */}
+      <div
+        className={`w-full p-6 mb-4 border-2 border-dashed rounded-lg text-white text-center cursor-pointer transition-all ${
+          draggingVideo ? "border-blue-500 bg-gray-700" : "border-gray-600 bg-gray-800"
+        }`}
+        onClick={() => document.getElementById("videoInput").click()}
+        onDragOver={(e) => handleDragOver(e, "video")}
+        onDragLeave={() => handleDragLeave("video")}
+        onDrop={(e) => handleDrop(e, "video")}
+      >
+        <input id="videoInput" type="file" className="hidden" accept="video/*" onChange={(e) => setVideoFile(e.target.files[0])} />
+        {videoFile ? `🎥 ${videoFile.name}` : "🎬 Click or Drag Video Here"}
+      </div>
 
       <button
         onClick={handleUpload}
-        className="w-full py-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+        className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-lg font-bold"
         disabled={loading}
       >
-        {loading ? "Uploading..." : "Upload Video"}
+        {loading ? "Uploading..." : "🚀 Upload Video"}
       </button>
     </div>
   );
