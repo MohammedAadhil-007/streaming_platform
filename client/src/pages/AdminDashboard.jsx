@@ -9,6 +9,7 @@ import VideoCard from "../components/VideoCard";
 import VideoActions from "../components/VideoActions";
 import UploadVideo from "../components/UploadVideo";
 import { MdDashboard } from "react-icons/md";
+import { FaSadTear } from "react-icons/fa";
 
 const AdminDashboard = () => {
   const [videos, setVideos] = useState([]); // All videos from Firestore
@@ -116,17 +117,18 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Search and Filter */}
-      <div className="p-6">
-        <VideoSearchFilter 
-          onSearchChange={setSearchQuery} 
-          onCategoryChange={setSelectedCategory} 
-          onGenreChange={setSelectedGenre} 
-        />
-      </div>
+      {/* 🔍 Search and Filter - Modern Shadow Effect */}
+      <div className="p-4 mx-6 mt-4 bg-gray-800 bg-opacity-90 backdrop-blur-lg rounded-lg shadow-lg ">
+  <VideoSearchFilter 
+    onSearchChange={setSearchQuery} 
+    onCategoryChange={setSelectedCategory} 
+    onGenreChange={setSelectedGenre} 
+  />
+</div>
 
-      {/* Video Grid - Modern Card Design */}
-      <div className="px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+      {/* 🎬 Video Grid - Modern Card Design */}
+      <div className="px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
         {filteredVideos.length > 0 ? (
           filteredVideos.map((video) => (
             <div key={video.id} className="relative transition-transform transform hover:scale-105 duration-300">
@@ -135,11 +137,15 @@ const AdminDashboard = () => {
             </div>
           ))
         ) : (
-          <p className="text-gray-400 col-span-full text-center text-lg">No videos found.</p>
+          // 🛑 No Videos Found Animation
+          <div className="col-span-full flex flex-col items-center justify-center mt-16">
+            <FaSadTear className="text-6xl text-gray-500 animate-bounce" />
+            <p className="text-center text-gray-400 text-lg mt-4">No videos found.</p>
+          </div>
         )}
       </div>
 
-      {/* Upload Video Modal */}
+      {/* 📌 Upload Video Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <UploadVideo onUploadSuccess={refreshVideos} onClose={() => setShowUploadModal(false)} />

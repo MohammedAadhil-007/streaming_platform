@@ -25,7 +25,7 @@ const VideoCard = ({ video }) => {
 
   return (
     <div
-      className="relative flex flex-col items-start w-64 md:w-72 lg:w-80 cursor-pointer"
+      className="relative flex flex-col items-start w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl cursor-pointer flex-grow"
       onMouseEnter={() => setShowDetails(true)}
       onMouseLeave={() => setShowDetails(false)}
     >
@@ -69,7 +69,7 @@ const VideoCard = ({ video }) => {
       {/* 🔹 Hover Details */}
       {showDetails && !isPlaying && (
         <div
-          className="absolute left-1/2 transform -translate-x-1/2 top-full mt-3 w-[22rem] bg-gray-900 text-white 
+          className="absolute left-1/2 transform -translate-x-1/2 top-full mt-3 w-64 md:w-72 lg:w-80 bg-gray-900 text-white 
           p-4 rounded-lg shadow-xl border border-gray-700 z-50 transition-all 
           duration-300 opacity-100 scale-100"
         >
