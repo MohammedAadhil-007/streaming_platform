@@ -25,15 +25,17 @@ const Navbar = () => {
     return (
         <nav className="p-4 bg-gray-800 text-white flex justify-between">
             <Link to="/home" className="text-lg font-bold">Video Stream</Link>
-            <div className="space-x-4">
+            <div className="space-x-4 flex items-center">
                 <Link to="/home">Home</Link>
-                {isAdmin && <Link to="/admin-dashboard">Admin Dashboard</Link>}
-                <button
-                    className="bg-red-500 px-3 py-1 rounded"
-                    onClick={() => auth.signOut()}
-                >
-                    Logout
-                </button>
+                {isAdmin && <Link to="/admin-dashboard" className="bg-yellow-600 px-3 py-1 rounded">Admin Dashboard</Link>}
+                {user && (
+                    <button
+                        className="bg-red-500 px-3 py-1 rounded"
+                        onClick={() => auth.signOut()}
+                    >
+                        Logout
+                    </button>
+                )}
             </div>
         </nav>
     );

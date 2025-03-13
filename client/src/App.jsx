@@ -6,6 +6,8 @@ import { adminEmails } from "./config";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
+import EditVideo from "./components/EditVideo"; // ✅ Add this line
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -37,6 +39,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/home" element={user ? <Home /> : <Navigate to="/" />} />
           <Route path="/admin-dashboard" element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
+          <Route path="/admin/edit/:id" element={<EditVideo />} />
         </Routes>
       </div>
     </Router>
