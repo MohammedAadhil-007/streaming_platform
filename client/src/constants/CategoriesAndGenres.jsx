@@ -1,0 +1,48 @@
+export const categories = [
+    "Clips", 
+    "Movies", 
+    "Series", 
+    "Documentary", 
+    "Short Films",  
+    "Music Videos", 
+    "Anime", 
+    "Podcasts", 
+    "Web Series", 
+    "Stand-up Comedy", 
+    "Vlogs", 
+    "Gaming", 
+    "Tutorials", 
+    "Reviews", 
+    "Interviews", 
+    "News", 
+    "Sports Highlights", 
+    "Educational", 
+    "Tech", 
+    "Cooking", 
+    "Travel", 
+    "DIY & Crafts"
+  ];
+  
+
+  export const genres = [
+    "Action", 
+    "Comedy", 
+    "Romance", 
+    "Adventure", 
+    "Horror", 
+    "Sci-Fi", 
+    "Drama", 
+    "Fantasy", 
+    "Thriller", 
+    "Mystery", 
+    "Crime", 
+    "Animation", 
+    "Family", 
+    "Musical", 
+    "Superhero", 
+    "War", 
+    "Western", 
+    "Historical", 
+    "Sports", 
+    "Reality"
+  ];

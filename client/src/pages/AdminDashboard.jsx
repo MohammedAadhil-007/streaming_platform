@@ -1,83 +1,156 @@
-import { useEffect, useState } from "react";
-import { db } from "../firebase";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import Navbar from "../components/Navbar"; 
-import UploadVideo from "../components/UploadVideo"; // ✅ Import Upload Component
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { collection, getDocs } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { FaPlus, FaSignOutAlt, FaHome, FaCog } from "react-icons/fa";
+import VideoSearchFilter from "../components/VideoSearchFilter";
+import VideoCard from "../components/VideoCard";
+import VideoActions from "../components/VideoActions";
+import UploadVideo from "../components/UploadVideo";
+import { MdDashboard } from "react-icons/md";
+import { FaSadTear } from "react-icons/fa";
 
 const AdminDashboard = () => {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [videos, setVideos] = useState([]); // All videos from Firestore
+  const [filteredVideos, setFilteredVideos] = useState([]); // Displayed videos after filtering
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showHome, setShowHome] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("");
 
-  // Fetch videos from Firestore on component mount
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchVideos = async () => {
-      setLoading(true);
-      try {
-        const videoCollection = collection(db, "videos");
-        const videoDocs = await getDocs(videoCollection);
-        setVideos(
-          videoDocs.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching videos:", error);
-      } finally {
-        setLoading(false);
-      }
+      const videoCollection = collection(db, "videos");
+      const videoSnapshot = await getDocs(videoCollection);
+      const videoList = videoSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setVideos(videoList);
+      setFilteredVideos(videoList); // Initially, show all videos
     };
-  
-    fetchVideos();
-  }, []); // Run only once when component mounts
 
-  // Delete a video from Firestore
-  const handleDelete = async (videoId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this video?");
-    if (!confirmDelete) return;
-    
+    fetchVideos();
+  }, []);
+
+  const refreshVideos = async () => {
+    const videoCollection = collection(db, "videos");
+    const videoSnapshot = await getDocs(videoCollection);
+    const videoList = videoSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setVideos(videoList);
+    setFilteredVideos(videoList); // Reset to all videos after refresh
+    setShowUploadModal(false);
+  };
+
+  const handleLogout = async () => {
     try {
-      await deleteDoc(doc(db, "videos", videoId));
-      // Remove deleted video from state
-      setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId));
+      await signOut(auth);
+      navigate("/login");
     } catch (error) {
-      console.error("Error deleting video:", error);
+      console.error("Error signing out:", error);
     }
   };
 
+  const toggleView = () => {
+    navigate(showHome ? "/admin-dashboard" : "/home");
+    setShowHome(!showHome);
+  };
+
+  // 🛠️ Filtering Logic
+  useEffect(() => {
+    let filtered = videos;
+
+    if (searchQuery) {
+      filtered = filtered.filter((video) =>
+        video.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter((video) => video.category === selectedCategory);
+    }
+
+    if (selectedGenre) {
+      filtered = filtered.filter((video) => video.genre === selectedGenre);
+    }
+
+    setFilteredVideos(filtered);
+  }, [searchQuery, selectedCategory, selectedGenre, videos]);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navbar />
-      <div className="p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
+      {/* Navbar - Glass Effect */}
+      <div className="bg-gray-800 bg-opacity-80 backdrop-blur-lg p-4 flex justify-between items-center shadow-md">
+        <h1 className="text-2xl font-bold text-white tracking-wide flex items-center gap-2">
+          <MdDashboard className="text-yellow-400 text-3xl animate-pulse" /> 
+          Admin Dashboard
+        </h1>
+        <div className="flex gap-4">
+          <button
+            className="transition-all duration-300 bg-yellow-500 px-4 py-2 rounded-lg hover:bg-yellow-600 flex items-center gap-2 transform hover:scale-105"
+            onClick={toggleView}
+          >
+            {showHome ? <FaCog /> : <FaHome />}
+            {showHome ? "Admin Panel" : "Home"}
+          </button>
 
-        {/* ✅ Upload Video Section */}
-        <UploadVideo onUploadSuccess={() => setVideos([])} /> {/* Refresh video list after upload */}
+          <button
+            className="transition-all duration-300 bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 transform hover:scale-105"
+            onClick={() => setShowUploadModal(true)}
+          >
+            <FaPlus /> Upload Video
+          </button>
 
-        {loading ? (
-          <p className="text-center text-gray-400">Loading videos...</p>
-        ) : videos.length === 0 ? (
-          <p className="text-center text-gray-400">No videos available.</p>
+          <button
+            className="transition-all duration-300 bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 transform hover:scale-105"
+            onClick={handleLogout}
+          >
+            <FaSignOutAlt /> Logout
+          </button>
+        </div>
+      </div>
+
+      {/* 🔍 Search and Filter - Modern Shadow Effect */}
+      <div className="p-4 mx-6 mt-4 bg-gray-800 bg-opacity-90 backdrop-blur-lg rounded-lg shadow-lg ">
+  <VideoSearchFilter 
+    onSearchChange={setSearchQuery} 
+    onCategoryChange={setSelectedCategory} 
+    onGenreChange={setSelectedGenre} 
+  />
+</div>
+
+
+      {/* 🎬 Video Grid - Modern Card Design */}
+      <div className="px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+        {filteredVideos.length > 0 ? (
+          filteredVideos.map((video) => (
+            <div key={video.id} className="relative transition-transform transform hover:scale-105 duration-300">
+              <VideoCard video={video} />
+              <VideoActions videoId={video.id} refreshVideos={refreshVideos} />
+            </div>
+          ))
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => (
-              <div key={video.id} className="bg-gray-800 p-4 rounded-lg shadow-lg">
-                <h2 className="text-xl font-semibold">{video.title}</h2>
-                <p className="text-sm text-gray-400">{video.description}</p>
-                <video className="w-full mt-2 rounded-lg" controls>
-                  <source src={video.url} type="video/mp4" />
-                </video>
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mt-3"
-                  onClick={() => handleDelete(video.id)}
-                >
-                  Delete Video
-                </button>
-              </div>
-            ))}
+          // 🛑 No Videos Found Animation
+          <div className="col-span-full flex flex-col items-center justify-center mt-16">
+            <FaSadTear className="text-6xl text-gray-500 animate-bounce" />
+            <p className="text-center text-gray-400 text-lg mt-4">No videos found.</p>
           </div>
         )}
       </div>
+
+      {/* 📌 Upload Video Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <UploadVideo onUploadSuccess={refreshVideos} onClose={() => setShowUploadModal(false)} />
+        </div>
+      )}
     </div>
   );
 };
